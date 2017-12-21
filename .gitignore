@@ -1,0 +1,7 @@
+# Ignore Security Sensitive Data
+.decrypted/*
+!.decrypted/.gitkeep
+
+# Ignore Data- & Plaintext Keys
+.key/data_key.json
+.key/plaintext_key_decoded.txt
