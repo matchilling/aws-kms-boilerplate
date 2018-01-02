@@ -115,6 +115,29 @@ shred_file() {
     shred --iterations=100 --remove=wipesync --zero "$1"
 }
 
+readJson() {
+    local SED_EXTENDED
+    local UNAMESTR
+    local VALUE
+
+    UNAMESTR=$(uname)
+
+    if [ 'Linux' = "$UNAMESTR" ]; then
+        SED_EXTENDED='-r'
+    elif [ 'Darwin' = "$UNAMESTR" ]; then
+        SED_EXTENDED='-E'
+    fi;
+
+    VALUE=$(grep -m 1 "\"${2}\"" "${1}" | sed ${SED_EXTENDED} 's/^ *//;s/.*: *"//;s/",?//')
+
+    if [ ! "$VALUE" ]; then
+        printf "Error: Cannot find \"%s\" in %s" "${2}" "${1}" >&2;
+        exit 1;
+    else
+        echo "$VALUE"
+    fi;
+}
+
 # (1) Create the KEY_DIR directory if it does not exists.
 if [ ! -d "$PROJECT_DIR/$KEY_DIR/" ]; then
     log "Create \"$KEY_DIR/\" directory."
@@ -131,11 +154,11 @@ if [ ! -f "$PROJECT_DIR/$KEY_DIR/$CIPHERTEXT_BLOB_DECODED_ID" ]; then
         --key-spec 'AES_256' > "$PROJECT_DIR/$KEY_DIR/${DATA_KEY_ID}"
 
     log "Extract CiphertextBlob from \"$DATA_KEY_ID\"."
-    sed -nr 's/^.*"CiphertextBlob":\s*"(.*?)".*$/\1/p' "$PROJECT_DIR/$KEY_DIR/${DATA_KEY_ID}" \
+    readJson "$PROJECT_DIR/$KEY_DIR/${DATA_KEY_ID}" "CiphertextBlob" \
         | openssl base64 -d > "$PROJECT_DIR/$KEY_DIR/$CIPHERTEXT_BLOB_DECODED_ID"
 
-    log "Extract Plaintext from \"$DATA_KEY_ID\"."
-    sed -nr 's/^.*"Plaintext":\s*"(.*?)".*$/\1/p' "$PROJECT_DIR/$KEY_DIR/${DATA_KEY_ID}" \
+    # log "Extract Plaintext from \"$DATA_KEY_ID\"."
+    readJson "$PROJECT_DIR/$KEY_DIR/${DATA_KEY_ID}" "Plaintext" \
         | openssl base64 -d > "$PROJECT_DIR/$KEY_DIR/$PLAINTEXT_KEY_DECODED_ID"
 
     shred_file "$PROJECT_DIR/$KEY_DIR/${DATA_KEY_ID}"
