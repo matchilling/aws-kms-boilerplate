@@ -5,7 +5,7 @@ This repository contains the example code for the blog post ["Painlessly storing
 - Setup your AWS account
 - Create an AWS KMS Customer Master Key as described and assign an alias to it as described in step 1 and 2 of the article.
 - Place your security sensitive data such as API keys, database credentials etc. in the `.decrypted/` folder.
-- For encryption execute `./bin/encrypt --kms-id=alias/your-key`.
+- For encryption execute `./bin/encrypt --kms_key_id=alias/your-key`.
 - For decryption execute `./bin/decrypt`.
 - *Note: activate the debugging mode by passing `--debug=true` into the script*
 
